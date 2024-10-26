@@ -1,20 +1,17 @@
-FROM node:16 AS super
+# Use CentOS Stream 9 image from Quay.io
+FROM quay.io/centos/centos:stream9 AS vinod
+
+# Set the working directory
 WORKDIR /app
-COPY GOD-Stream/package*.json ./
+
+# Copy application files
+COPY . .
+RUN yum install -y epel-release && yum update -y && yum install -y nodejs
 RUN npm install
-COPY GOD-Stream/ ./
 RUN npm run build
 
-# Step 2: Create a production image with Nginx
+
 FROM nginx:latest
-
-# Copy the built application from the build stage
-COPY --from=super /app/build/ /usr/share/nginx/html/
-
-# Expose the default port for Nginx
+COPY --from=vinod /app/build/ /usr/share/nginx/html/
 EXPOSE 80
-
-# Command to run Nginx (already the default command for the Nginx image)
 CMD ["nginx", "-g", "daemon off;"]
-
-~                                               
